@@ -27,7 +27,10 @@ TEST_INPUT = """\
 
 
 def part1(input):
-    raise NotImplementedError
+    return max(
+        sum(int(calories) for calories in elf.split('\n'))
+        for elf in input.rstrip('\n').split('\n\n')
+    )
 
 
 def part2(input):
