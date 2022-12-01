@@ -4,6 +4,10 @@ Advent of Code 2022 -- Day 1
 
 >>> part1(TEST_INPUT)
 24000
+>>> part2(TEST_INPUT)
+45000
+>>> list(elves(TEST_INPUT))
+[6000, 4000, 11000, 24000, 10000]
 """
 
 import sys
@@ -26,15 +30,23 @@ TEST_INPUT = """\
 """
 
 
+def elves(input):
+    calories = 0
+    for line in input.splitlines():
+        if line:
+            calories += int(line)
+        else:
+            yield calories
+            calories = 0
+    yield calories
+
+
 def part1(input):
-    return max(
-        sum(int(calories) for calories in elf.split('\n'))
-        for elf in input.rstrip('\n').split('\n\n')
-    )
+    return max(elves(input))
 
 
 def part2(input):
-    raise NotImplementedError
+    return sum(sorted(elves(input))[-3:])
 
 
 def main(args):
