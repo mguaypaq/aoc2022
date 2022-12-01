@@ -5,3 +5,6 @@
 input.txt
 output1.txt
 output2.txt
+
+# ignore python caches
+__pycache__/
