@@ -1,0 +1,6 @@
+# don't save the oauth session cookie
+/session.txt
+
+# user-specific input and output files
+input.txt
+output.txt
