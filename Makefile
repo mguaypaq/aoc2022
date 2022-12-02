@@ -1,5 +1,8 @@
-all:
-.PHONY: all
+test:
+	@echo \# testing day??/solve.py
+	flake8 day??/solve.py
+	for script in day??/solve.py; do python3 -m doctest "$$script"; done
+.PHONY: test
 
 day0%/input.txt day%/input.txt: session.txt
 	mkdir --parents $(@D)

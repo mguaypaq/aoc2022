@@ -7,6 +7,7 @@ Assuming that either:
   by `curl --cookie`, or
 * the file `day01/input.txt` already contains your specific puzzle
   input for day 1,
+
 you can get the corresponding outputs by running the command:
 ```sh
 make day01/output1.txt day01/output2.txt
@@ -14,7 +15,7 @@ make day01/output1.txt day01/output2.txt
 
 You can also test the examples from the puzzle statement with:
 ```sh
-python3 -m doctest day01/solve.py
+make test
 ```
 
 [Advent of Code 2022]: <https://adventofcode.com/2022>
