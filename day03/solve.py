@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 3
 >>> part1(TEST_INPUT)
 157
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+70
 """
 
 import string
@@ -22,9 +20,10 @@ ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw
 """
 
+priority = {letter: p for p, letter in enumerate(string.ascii_letters, 1)}
+
 
 def part1(input):
-    priority = {letter: p for p, letter in enumerate(string.ascii_letters, 1)}
     total = 0
     for rucksack in input.splitlines():
         size = len(rucksack)
@@ -38,7 +37,18 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    total = 0
+    rucksacks = iter(input.splitlines())
+    for first in rucksacks:
+        second = next(rucksacks)
+        third = next(rucksacks)
+        badge = set(first) & set(second) & set(third)
+        if len(badge) != 1:
+            raise ValueError(
+                f'non-unique badge: {first!r}, {second!r}, {third!r}'
+            )
+        total += priority[badge.pop()]
+    return total
 
 
 def main(args):
