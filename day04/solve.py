@@ -28,28 +28,27 @@ line_re = re.compile(r"""
 """, re.VERBOSE)
 
 
-def part1(input):
-    contained = 0
+def parse(input):
     for line in input.splitlines():
         m = line_re.fullmatch(line)
         if m is None:
             raise ValueError(f'invalid line: {line!r}')
         a, b, c, d = map(int, m.groups())
-        if b < a or d < c:
+        if not (a <= b and c <= d):
             raise ValueError(f'invalid ranges: {line!r}')
+        yield (a, b, c, d)
+
+
+def part1(input):
+    contained = 0
+    for a, b, c, d in parse(input):
         contained += (a <= c <= d <= b) or (c <= a <= b <= d)
     return contained
 
 
 def part2(input):
     overlapping = 0
-    for line in input.splitlines():
-        m = line_re.fullmatch(line)
-        if m is None:
-            raise ValueError(f'invalid line: {line!r}')
-        a, b, c, d = map(int, m.groups())
-        if b < a or d < c:
-            raise ValueError(f'invalid ranges: {line!r}')
+    for a, b, c, d in parse(input):
         # it's easier to test for NON-overlaps
         overlapping += not (a <= b < c <= d or c <= d < a <= b)
     return overlapping
