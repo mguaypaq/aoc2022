@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 4
 >>> part1(TEST_INPUT)
 2
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+4
 """
 
 import re
@@ -44,7 +42,17 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    overlapping = 0
+    for line in input.splitlines():
+        m = line_re.fullmatch(line)
+        if m is None:
+            raise ValueError(f'invalid line: {line!r}')
+        a, b, c, d = map(int, m.groups())
+        if b < a or d < c:
+            raise ValueError(f'invalid ranges: {line!r}')
+        # it's easier to test for NON-overlaps
+        overlapping += not (a <= b < c <= d or c <= d < a <= b)
+    return overlapping
 
 
 def main(args):
