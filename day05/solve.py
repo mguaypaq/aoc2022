@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 5
 >>> part1(TEST_INPUT)
 'CMZ'
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+'MCD'
 """
 
 import re
@@ -26,7 +24,7 @@ move 1 from 1 to 2
 """  # noqa: W291
 
 
-def part1(input):
+def parse_drawing(input):
     lines = iter(input.splitlines())
 
     # first line tells us how many stacks
@@ -58,24 +56,38 @@ def part1(input):
     if line:
         raise ValueError(f'extra drawing line: {line!r}')
 
-    # finally, the manipulation instructions
+    return stacks, lines
+
+
+def parse_moves(lines):
     move_re = re.compile(r'move (0|[1-9]\d*) from (.) to (.)')
     for line in lines:
         m = move_re.fullmatch(line)
         if not m:
             raise ValueError(f'invalid move: {line!r}')
         quantity, source, destination = m.groups()
-        if source == destination:
-            raise ValueError(f'invalid move: {line!r}')
+        yield int(quantity), source, destination
+
+
+def part1(input):
+    stacks, lines = parse_drawing(input)
+    for quantity, source, destination in parse_moves(lines):
         for _ in range(int(quantity)):
             crate = stacks[source].pop()
             stacks[destination].append(crate)
-
     return ''.join(s[-1] for s in stacks.values())
 
 
 def part2(input):
-    raise NotImplementedError
+    stacks, lines = parse_drawing(input)
+    for quantity, source, destination in parse_moves(lines):
+        stack = stacks[source]
+        remain = len(stack) - quantity
+        if remain < 0:
+            raise ValueError('not enough crates to pick up')
+        stacks[source], crates = stack[:remain], stack[remain:]
+        stacks[destination].extend(crates)
+    return ''.join(s[-1] for s in stacks.values())
 
 
 def main(args):
