@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Advent of Code 2022 -- Day n
+Advent of Code 2022 -- Day {{day}}
 
 >>> part1(TEST_INPUT)
 Traceback (most recent call last):
