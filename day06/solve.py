@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 6
 >>> [part1(input) for input in TEST_INPUT]
 [7, 5, 6, 10, 11]
 >>> [part2(input) for input in TEST_INPUT]
-Traceback (most recent call last):
-...
-NotImplementedError
+[19, 23, 23, 29, 26]
 """
 
 import sys
@@ -21,15 +19,19 @@ TEST_INPUT = [
 ]
 
 
-def part1(input):
+def marker(input, size):
     return next(
-        i for i in range(4, len(input))
-        if len(set(input[i-4:i])) == 4
+        i for i in range(size, len(input))
+        if len(set(input[i-size:i])) == size
     )
 
 
+def part1(input):
+    return marker(input, 4)
+
+
 def part2(input):
-    raise NotImplementedError
+    return marker(input, 14)
 
 
 def main(args):
