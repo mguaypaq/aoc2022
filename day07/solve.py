@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 7
 >>> part1(TEST_INPUT)
 95437
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+24933642
 >>> print(parse(TEST_INPUT))
 - / (dir)
   - a (dir)
@@ -185,7 +183,10 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    root = parse(input)
+    sizes = list(root.du())
+    needed = root.size + 30_000_000 - 70_000_000
+    return min(s for s in sizes if s >= needed)
 
 
 def main(args):
