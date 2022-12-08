@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 8
 >>> part1(TEST_INPUT)
 21
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+8
 """
 
 import sys
@@ -21,27 +19,48 @@ TEST_INPUT = """\
 """
 
 
+def parse(input):
+    rows = tuple(
+        tuple(int(tree) for tree in row)
+        for row in input.splitlines()
+    )
+    cols = tuple(zip(*rows, strict=True))
+    return rows, cols
+
+
 def part1(input):
-    grid = [list(map(int, line)) for line in input.splitlines()]
-    nrows = len(grid)
-    ncols = len(grid[0])
-    if any(len(row) != ncols for row in grid):
-        raise ValueError('non-rectangular grid')
-    invisible = 0
-    for y, row in enumerate(grid):
-        for x, tree in enumerate(row):
-            col = [r[x] for r in grid]
-            invisible += (
+    rows, cols = parse(input)
+    visible = len(rows) * len(cols)
+    for x, col in enumerate(cols):
+        for y, row in enumerate(rows):
+            tree = row[x]
+            assert tree == col[y]
+            visible -= (
                 any(t >= tree for t in row[:x])
                 and any(t >= tree for t in row[x+1:])
                 and any(t >= tree for t in col[:y])
                 and any(t >= tree for t in col[y+1:])
             )
-    return nrows * ncols - invisible
+    return visible
+
+
+def view(ray):
+    tree, *ray = ray
+    result = 0
+    for t in ray:
+        result += 1
+        if t >= tree:
+            break
+    return result
 
 
 def part2(input):
-    raise NotImplementedError
+    rows, cols = parse(input)
+    return max(
+        view(row[x:]) * view(row[x::-1]) * view(col[y:]) * view(col[y::-1])
+        for x, col in enumerate(cols)
+        for y, row in enumerate(rows)
+    )
 
 
 def main(args):
