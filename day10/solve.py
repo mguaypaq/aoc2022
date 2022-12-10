@@ -4,10 +4,13 @@ Advent of Code 2022 -- Day 10
 
 >>> part1(TEST_INPUT)
 13140
->>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+>>> print(part2(TEST_INPUT))
+##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....
 >>> list(execute(TEST_INPUT))[19::40]
 [21, 19, 18, 21, 16, 18]
 """
@@ -40,7 +43,19 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    screen = []
+    line = []
+    beam = 0
+    for sprite in execute(input):
+        line.append('#' if abs(beam-sprite) < 2 else '.')
+        beam += 1
+        if beam == 40:
+            screen.append(''.join(line))
+            line.clear()
+            beam = 0
+    if line:
+        screen.append(''.join(line))
+    return '\n'.join(screen)
 
 
 def main(args):
