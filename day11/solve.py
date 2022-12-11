@@ -5,12 +5,11 @@ Advent of Code 2022 -- Day 11
 >>> part1(TEST_INPUT)
 10605
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+2713310158
 """
 
 from collections import namedtuple
+import math
 import re
 import sys
 
@@ -95,7 +94,7 @@ operation = {
 }
 
 
-def part1(input):
+def parse(input):
     lines = iter(input.splitlines())
     monkeys = []
     while True:
@@ -128,6 +127,11 @@ def part1(input):
         if line:
             raise ValueError(f'non-blank line: {line!r}')
 
+    return monkeys
+
+
+def part1(input):
+    monkeys = parse(input)
     passes = [0] * len(monkeys)
     for round in range(20):
         for monkey, (items, op, div, next_monkey) in enumerate(monkeys):
@@ -136,13 +140,23 @@ def part1(input):
                 monkeys[next_monkey[item % div == 0]].items.append(item)
             passes[monkey] += len(items)
             items.clear()
-
     passes.sort()
     return passes[-2] * passes[-1]
 
 
 def part2(input):
-    raise NotImplementedError
+    monkeys = parse(input)
+    modulus = math.lcm(*(m.div for m in monkeys))
+    passes = [0] * len(monkeys)
+    for round in range(10_000):
+        for monkey, (items, op, div, next_monkey) in enumerate(monkeys):
+            for item in items:
+                item = op(item) % modulus
+                monkeys[next_monkey[item % div == 0]].items.append(item)
+            passes[monkey] += len(items)
+            items.clear()
+    passes.sort()
+    return passes[-2] * passes[-1]
 
 
 def main(args):
