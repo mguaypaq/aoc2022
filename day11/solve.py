@@ -144,17 +144,52 @@ def part1(input):
     return passes[-2] * passes[-1]
 
 
+modulus = 0
+class oomnum:
+    __slots__ = ('mod', 'oomlo', 'oomhi')
+    def __init__(self, mod, oomlo, oomhi):
+        self.mod = mod
+        self.oomlo = oomlo
+        self.oomhi = oomhi
+    def __add__(self, other):
+        if isinstance(other, int):
+            other = make_oomnum(other)
+        return oomnum(
+            (self.mod + other.mod) % modulus,
+            max(self.oomlo, other.oomlo) + (self.oomlo == other.oomlo),
+            max(self.oomhi, other.oomhi) + 1,
+        )
+    def __mul__(self, other):
+        if isinstance(other, int):
+            other = make_oomnum(other)
+        return oomnum(
+            (self.mod * other.mod) % modulus,
+            self.oomlo + other.oomlo,
+            self.oomhi + other.oomhi,
+        )
+    def __mod__(self, other):
+        return self.mod % other
+def make_oomnum(n):
+    return oomnum(n % modulus, n.bit_length(), n.bit_length()+1)
+
+
 def part2(input):
     monkeys = parse(input)
-    modulus = math.lcm(*(m.div for m in monkeys))
+    global modulus; modulus = math.lcm(*(m.div for m in monkeys))
+    for monkey in monkeys:
+        for index, item in enumerate(monkey.items):
+            monkey.items[index] = make_oomnum(item)
     passes = [0] * len(monkeys)
     for round in range(10_000):
         for monkey, (items, op, div, next_monkey) in enumerate(monkeys):
             for item in items:
-                item = op(item) % modulus
+                item = op(item)
                 monkeys[next_monkey[item % div == 0]].items.append(item)
             passes[monkey] += len(items)
             items.clear()
+    items = [i for m in monkeys for i in m.items]
+    print('min', max(i.oomlo for i in items))
+    print('max', max(i.oomhi for i in items))
     passes.sort()
     return passes[-2] * passes[-1]
 
@@ -164,7 +199,7 @@ def main(args):
     if args == ['1']:
         print(part1(input), file=open('output1.txt', 'w'))
     elif args == ['2']:
-        print(part2(input), file=open('output2.txt', 'w'))
+        print(part2(input)) #, file=open('output2.txt', 'w'))
     else:
         raise ValueError(f'invalid arguments: {args!r}')
 
