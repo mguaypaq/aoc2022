@@ -5,13 +5,12 @@ Advent of Code 2022 -- Day 12
 >>> part1(TEST_INPUT)
 31
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+29
 """
 
 import string
 import sys
+from typing import Optional
 
 TEST_INPUT = """\
 Sabqponm
@@ -25,8 +24,11 @@ HEIGHT = {c: i for i, c in enumerate(string.ascii_lowercase)}
 HEIGHT['S'] = HEIGHT['a']
 HEIGHT['E'] = HEIGHT['z']
 
+Point = tuple[int, int]
+Height = dict[Point, int]
 
-def part1(input):
+
+def parse(input: str) -> tuple[Height, Point, Point]:
     height = {}
     start = stop = None
     for x, line in enumerate(input.splitlines()):
@@ -40,10 +42,13 @@ def part1(input):
         raise ValueError('missing start')
     if stop is None:
         raise ValueError('missing stop')
+    return height, start, stop
 
+
+def bfs(height: Height, start: set[Point], stop: Point) -> int:
     step = 0
     visited = set()
-    curpos = {start}
+    curpos = start
     while curpos:
         if stop in curpos:
             break
@@ -60,11 +65,18 @@ def part1(input):
     return step
 
 
-def part2(input):
-    raise NotImplementedError
+def part1(input: str) -> int:
+    height, start, stop = parse(input)
+    return bfs(height, {start}, stop)
 
 
-def main(args):
+def part2(input: str) -> int:
+    height, _, stop = parse(input)
+    start = {xy for xy, h in height.items() if h == HEIGHT['a']}
+    return bfs(height, start, stop)
+
+
+def main(args: list[str]) -> Optional[int]:
     input = open('input.txt').read()
     if args == ['1']:
         print(part1(input), file=open('output1.txt', 'w'))
