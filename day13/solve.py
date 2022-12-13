@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 13
 >>> part1(TEST_INPUT)
 13
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+140
 """
 
 import sys
@@ -80,6 +78,8 @@ def parse(line):
     return item
 
 
+# I would prefer to make this iterative rather than
+# recursive, but I can't be bothered right now
 def compare(left, right):
     if isinstance(left, int):
         if isinstance(right, int):
@@ -120,8 +120,26 @@ def part1(input):
     )
 
 
+# Augh, let's just do selection sort
 def part2(input):
-    raise NotImplementedError
+    div1 = [[2]]
+    div2 = [[6]]
+    packets = [parse(line) for line in input.splitlines() if line]
+    packets.extend([div1, div2])
+    for i in range(len(packets)):
+        for j in range(i+1, len(packets)):
+            c = compare(packets[i], packets[j])
+            if c == 0:
+                raise ValueError
+            if c > 0:
+                packets[i], packets[j] = packets[j], packets[i]
+    # Maybe this ordering relation is not transitive?
+    for i in range(len(packets)):
+        for j in range(i+1, len(packets)):
+            c = compare(packets[i], packets[j])
+            if c >= 0:
+                raise ValueError
+    return (packets.index(div1)+1) * (packets.index(div2)+1)
 
 
 def main(args):
