@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 14
 >>> part1(TEST_INPUT)
 24
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+93
 """
 
 import re
@@ -71,7 +69,26 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    blocks = set()
+    for points in parse(input):
+        blocks.update(path(points))
+    floor = max(y+1 for (x, y) in blocks)
+
+    resting = 0
+    while True:
+        x, y = sand = (500, 0)
+        if sand in blocks:
+            break
+        while y < floor:
+            for down in [(x, y+1), (x-1, y+1), (x+1, y+1)]:
+                if down not in blocks:
+                    x, y = sand = down
+                    break
+            else:
+                break
+        blocks.add(sand)
+        resting += 1
+    return resting
 
 
 def main(args):
