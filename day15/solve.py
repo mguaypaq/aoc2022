@@ -4,10 +4,8 @@ Advent of Code 2022 -- Day 15
 
 >>> part1(TEST_INPUT, y=10)
 26
->>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+>>> part2(TEST_INPUT, bound=20)
+56000011
 """
 
 import re
@@ -36,24 +34,36 @@ line_re = re.compile(
 )
 
 
-def part1(input, y):
-    boundaries = []
+def parse(input):
+    sensors = []
     beacons = set()
     for line in input.splitlines():
         m = line_re.fullmatch(line)
         if m is None:
             raise ValueError(f'bad line: {line!r}')
         sx, sy, bx, by = map(int, m.groups())
-        distance = abs(sx-bx) + abs(sy-by)
-        radius = distance - abs(sy-y)
+        sd = abs(sx-bx) + abs(sy-by)
+        sensors.append((sx, sy, sd))
+        beacons.add((bx, by))
+    return sensors, beacons
+
+
+def intersect(sensors, y):
+    boundaries = []
+    for sx, sy, sd in sensors:
+        radius = sd - abs(sy-y)
         if radius >= 0:
             boundaries.extend([
-                (sx - radius, +1),
+                (sx - radius,     +1),
                 (sx + radius + 1, -1),
             ])
-        if by == y:
-            beacons.add(bx)
+    return boundaries
 
+
+def part1(input, y):
+    sensors, beacons = parse(input)
+
+    boundaries = intersect(sensors, y)
     boundaries.sort()
     signal = 0
     excluded = 0
@@ -64,11 +74,26 @@ def part1(input, y):
         assert signal >= 0
         if not signal:
             excluded += x
-    return excluded - len(beacons)
+
+    return excluded - sum((by == y) for (bx, by) in beacons)
 
 
-def part2(input):
-    raise NotImplementedError
+def part2(input, bound):
+    sensors, beacons = parse(input)
+
+    for y in range(bound+1):
+        boundaries = intersect(sensors, y)
+        boundaries.extend([
+            (0,       -1),
+            (bound+1, +1),
+        ])
+        boundaries.sort(key=lambda x: (x[0], -x[1]))
+        signal = 1
+        for x, s in boundaries:
+            signal += s
+            if not signal:
+                return 4_000_000*x + y
+    raise ValueError('not found')
 
 
 def main(args):
@@ -76,7 +101,7 @@ def main(args):
     if args == ['1']:
         print(part1(input, y=2_000_000), file=open('output1.txt', 'w'))
     elif args == ['2']:
-        print(part2(input), file=open('output2.txt', 'w'))
+        print(part2(input, bound=4_000_000), file=open('output2.txt', 'w'))
     else:
         raise ValueError(f'invalid arguments: {args!r}')
 
