@@ -48,22 +48,16 @@ def parse(input):
     return sensors, beacons
 
 
-def intersect(sensors, y):
+def part1(input, y):
+    sensors, beacons = parse(input)
     boundaries = []
     for sx, sy, sd in sensors:
         radius = sd - abs(sy-y)
         if radius >= 0:
             boundaries.extend([
-                (sx - radius,     +1),
-                (sx + radius + 1, -1),
+                (sx-radius,   +1),
+                (sx+radius+1, -1),
             ])
-    return boundaries
-
-
-def part1(input, y):
-    sensors, beacons = parse(input)
-
-    boundaries = intersect(sensors, y)
     boundaries.sort()
     signal = 0
     excluded = 0
@@ -78,22 +72,47 @@ def part1(input, y):
     return excluded - sum((by == y) for (bx, by) in beacons)
 
 
-def part2(input, bound):
-    sensors, beacons = parse(input)
+def scanned(sensors, x, y):
+    return any(
+        abs(sx-x) + abs(sy-y) <= sd
+        for sx, sy, sd in sensors
+    )
 
-    for y in range(bound+1):
-        boundaries = intersect(sensors, y)
-        boundaries.extend([
-            (0,       -1),
-            (bound+1, +1),
-        ])
-        boundaries.sort(key=lambda x: (x[0], -x[1]))
-        signal = 1
-        for x, s in boundaries:
-            signal += s
-            if not signal:
-                return 4_000_000*x + y
-    raise ValueError('not found')
+
+def part2(input, bound):
+    sensors, _ = parse(input)
+
+    # the diagonal lines of the form
+    # y = -x + C  and  y = x - C
+    # which are 1 or 2 steps outside of each sensor's bubble
+    diagonals = set()
+    antidiags = set()
+    for sx, sy, sd in sensors:
+        diagonals.update(
+            sx + sy + delta
+            for delta in [-sd-2, -sd-1, sd+1, sd+2]
+        )
+        antidiags.update(
+            sx - sy + delta
+            for delta in [-sd-2, -sd-1, sd+1, sd+2]
+        )
+
+    # the four corners of the region are candidates
+    candidates = {(x, y) for x in [0, bound] for y in [0, bound]}
+    # the intersections of diagonals and antidiagonals are candidates
+    candidates.update(
+        ((u+v) // 2, (u-v) // 2)
+        for u in diagonals
+        for v in antidiags
+        if u % 2 == v % 2
+    )
+    return next(
+        4_000_000*x + y
+        for (x, y) in candidates
+        if 0 <= x <= bound
+        and 0 <= y <= bound
+        and not scanned(sensors, x, y)
+    )
 
 
 def main(args):
