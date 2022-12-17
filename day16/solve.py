@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 16
 >>> part1(TEST_INPUT)
 1651
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+1707
 """
 
 import re
@@ -43,45 +41,45 @@ class Valve(NamedTuple):
 
 
 class State(NamedTuple):
-    name: str
-    opened: list[str]
-    released: int
-    time: int
+    runners: list[tuple[int, str]]  # assumed to be sorted
+    opened: frozenset[str] = frozenset()
+    released: int = 0
 
     def next_states(self, valves, costs):
-        name, opened, released, time = self
-        for n in costs.keys() - opened:
-            after = time - costs[n][name]
-            if after > 0:
-                yield State(
-                    name=n,
-                    opened=opened + [n],
-                    released=released + after * valves[n].rate,
-                    time=after,
-                )
+        runners, opened, released = self
+        if runners:
+            runners = runners.copy()
+            time, name = runners.pop()
+            for n in sorted(
+                costs.keys() - opened,
+                key=lambda n: valves[n].rate,
+                reverse=True,
+            ):
+                after = time - costs[n][name]
+                if after > 0:
+                    yield State(
+                        runners=sorted(runners + [(after, n)]),
+                        opened=opened.union([n]),
+                        released=released + after * valves[n].rate,
+                    )
+            yield State(runners, opened, released)
 
     def bound(self, valves, costs):
-        name, opened, released, time = self
-        for n in costs.keys() - opened:
-            after = time - costs[n][name]
-            if after > 0:
-                released += after * valves[n].rate
+        runners, opened, released = self
+        if runners:
+            for n in costs.keys() - opened:
+                after = max(
+                    time - costs[n][name]
+                    for time, name in runners
+                )
+                if after > 0:
+                    released += after * valves[n].rate
         return released
 
     def feasible(self, valves, costs):
-        name, opened, released, time = self
-        heuristic = sorted(
-            costs.keys() - opened,
-            key=lambda n: valves[n].rate,
-            reverse=True,
-        )
-        for n in heuristic:
-            after = time - costs[n][name]
-            if after > 0:
-                name = n
-                released += after * valves[n].rate
-                time = after
-        return released
+        while self.runners:
+            self = next(self.next_states(valves, costs))
+        return self.released
 
 
 def parse(input):
@@ -102,7 +100,14 @@ def parse(input):
         for dst in valves[src].neighbours:
             if src not in valves[dst].neighbours:
                 raise ValueError(f'one-way tunnel from {src} to {dst}')
-    return valves
+
+    costs = {
+        name: time_cost(valves, name)
+        for name in valves
+        if valves[name].rate > 0
+    }
+
+    return valves, costs
 
 
 def time_cost(valves, destination):
@@ -119,20 +124,9 @@ def time_cost(valves, destination):
 
 
 def part1(input):
-    valves = parse(input)
-    costs = {
-        name: time_cost(valves, name)
-        for name in valves
-        if valves[name].rate > 0
-    }
-
+    valves, costs = parse(input)
     best = 0
-    stack = [State(
-        name='AA',
-        opened=[],
-        released=0,
-        time=30,
-    )]
+    stack = [State(runners=[(30, 'AA')])]
     while stack:
         state = stack.pop()
         if state.bound(valves, costs) > best:
@@ -142,7 +136,15 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    valves, costs = parse(input)
+    best = 0
+    stack = [State(runners=[(26, 'AA')] * 2)]
+    while stack:
+        state = stack.pop()
+        if state.bound(valves, costs) > best:
+            best = max(best, state.feasible(valves, costs))
+            stack.extend(state.next_states(valves, costs))
+    return best
 
 
 def main(args):
