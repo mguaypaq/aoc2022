@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 18
 >>> part1(TEST_INPUT)
 64
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+58
 """
 
 import sys
@@ -29,28 +27,63 @@ TEST_INPUT = """\
 """
 
 
-def part1(input):
-    cubes = {
+def parse(input):
+    return {
         (int(x), int(y), int(z))
         for x, y, z in (
             line.split(',', maxsplit=2)
             for line in input.splitlines()
         )}
+
+
+def neighbours(cube):
+    x, y, z = cube
+    return [
+        (x+1, y, z),
+        (x-1, y, z),
+        (x, y+1, z),
+        (x, y-1, z),
+        (x, y, z+1),
+        (x, y, z-1),
+    ]
+
+
+def part1(input):
+    cubes = parse(input)
     return sum(
         neighbour not in cubes
-        for x, y, z in cubes
-        for neighbour in [
-            (x+1, y, z),
-            (x-1, y, z),
-            (x, y+1, z),
-            (x, y-1, z),
-            (x, y, z+1),
-            (x, y, z-1),
-        ])
+        for cube in cubes
+        for neighbour in neighbours(cube)
+    )
 
 
 def part2(input):
-    raise NotImplementedError
+    cubes = parse(input)
+
+    min_corner = tuple(
+        min(c[i] for c in cubes) - 1
+        for i in range(3)
+    )
+
+    max_corner = tuple(
+        max(c[i] for c in cubes) + 1
+        for i in range(3)
+    )
+
+    area = 0
+    steam = set()
+    stack = [min_corner]
+    while stack:
+        cube = stack.pop()
+        if all(i <= j <= k for i, j, k in zip(min_corner, cube, max_corner)):
+            if cube in cubes:
+                area += 1
+            elif cube in steam:
+                pass
+            else:
+                steam.add(cube)
+                stack.extend(neighbours(cube))
+    return area
 
 
 def main(args):
