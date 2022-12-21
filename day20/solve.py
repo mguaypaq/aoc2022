@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 20
 >>> part1(TEST_INPUT)
 3
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+1623178306
 """
 
 import sys
@@ -22,24 +20,40 @@ TEST_INPUT = """\
 4
 """
 
+key = 811589153
+
+
+def mix(data, pos):
+    for i, n in enumerate(data):
+        src = pos[i]
+        dst = (src + n) % (len(data) - 1)
+        for j in range(len(pos)):
+            pos[j] -= (pos[j] > src)
+            pos[j] += (pos[j] >= dst)
+        pos[i] = dst
+
+
+def grove(data, pos):
+    zero = pos[data.index(0)]
+    return sum(
+        data[pos.index((zero + i) % len(data))]
+        for i in [1000, 2000, 3000]
+    )
+
 
 def part1(input):
-    data = [(int(line), False) for line in input.splitlines()]
-    i = 0
-    while i < len(data):
-        if data[i][1]:
-            i += 1
-        else:
-            n, _ = data.pop(i)
-            j = (i + n) % len(data)
-            data.insert(j, (n, True))
-    data = [n for n, _ in data]
-    z = data.index(0)
-    return sum(data[(z+i) % len(data)] for i in [1000, 2000, 3000])
+    data = [int(line) for line in input.splitlines()]
+    pos = list(range(len(data)))
+    mix(data, pos)
+    return grove(data, pos)
 
 
 def part2(input):
-    raise NotImplementedError
+    data = [key * int(line) for line in input.splitlines()]
+    pos = list(range(len(data)))
+    for _ in range(10):
+        mix(data, pos)
+    return grove(data, pos)
 
 
 def main(args):
