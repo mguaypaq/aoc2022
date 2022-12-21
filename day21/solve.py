@@ -5,13 +5,13 @@ Advent of Code 2022 -- Day 21
 >>> part1(TEST_INPUT)
 152
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+301
 """
 
+import itertools as it
 import re
 import sys
+from typing import Iterable
 
 TEST_INPUT = """\
 root: pppw + sjmn
@@ -38,7 +38,79 @@ line_re = re.compile(
 )
 
 
-def part1(input):
+class Polynomial:
+    def __init__(self, coeffs: Iterable[int]):
+        coeffs = list(coeffs)
+        while coeffs and coeffs[-1] == 0:
+            coeffs.pop()
+        self.coeffs = coeffs
+
+    def __len__(self):
+        return len(self.coeffs)
+
+    def __iter__(self):
+        return iter(self.coeffs)
+
+    def __add__(self, other):
+        return Polynomial(
+            a + b for a, b in it.zip_longest(self, other, fillvalue=0)
+        )
+
+    def __sub__(self, other):
+        return Polynomial(
+            a - b for a, b in it.zip_longest(self, other, fillvalue=0)
+        )
+
+    def __lshift__(self, count):
+        return Polynomial([0] * count + self.coeffs)
+
+    def scale(self, scalar):
+        return Polynomial(a * scalar for a in self)
+
+    def __mul__(self, other):
+        return sum((
+            self.scale(coeff) << degree
+            for degree, coeff in enumerate(other)
+        ), start=Polynomial([]))
+
+
+class Rational:
+    def __init__(self, numerator, denominator):
+        self.num = numerator
+        self.den = denominator
+
+    def __add__(self, other):
+        return Rational(
+            self.num * other.den + self.den * other.num,
+            self.den * other.den,
+        )
+
+    def __sub__(self, other):
+        return Rational(
+            self.num * other.den - self.den * other.num,
+            self.den * other.den,
+        )
+
+    def __mul__(self, other):
+        return Rational(
+            self.num * other.num,
+            self.den * other.den,
+        )
+
+    def __truediv__(self, other):
+        return Rational(
+            self.num * other.den,
+            self.den * other.num,
+        )
+
+    def __mod__(self, other):
+        return 0
+
+    def __floordiv__(self, other):
+        return self / other
+
+
+def parse(input):
     value = {}
     expr = {}
     for line in input.splitlines():
@@ -49,8 +121,11 @@ def part1(input):
             value[m['monkey']] = int(m['number'])
         else:
             expr[m['monkey']] = (m['left'], m['op'], m['right'])
+    return value, expr
 
-    stack = [('root', False)]
+
+def compute(value, expr, monkeys):
+    stack = [(m, False) for m in monkeys]
     active = set()
     while stack:
         monkey, ready = stack.pop()
@@ -58,7 +133,7 @@ def part1(input):
             if monkey not in value:
                 if monkey in active:
                     raise ValueError(f'monkey in a loop: {monkey!r}')
-                left, op, right = expr[monkey]
+                left, _, right = expr[monkey]
                 stack.extend([(monkey, True), (left, False), (right, False)])
                 active.add(monkey)
         else:
@@ -75,11 +150,31 @@ def part1(input):
                 value[monkey] = value[left] // value[right]
             else:
                 assert False
+
+
+def part1(input):
+    value, expr = parse(input)
+    compute(value, expr, ['root'])
     return value['root']
 
 
 def part2(input):
-    raise NotImplementedError
+    value, expr = parse(input)
+    rational = {
+        m: Rational(Polynomial([v]), Polynomial([1]))
+        for m, v in value.items()
+    }
+    rational['humn'] = Rational(Polynomial([0, 1]), Polynomial([1]))
+    left, _, right = expr['root']
+    compute(rational, expr, [left, right])
+    poly = (rational[left] - rational[right]).num
+    if len(poly) == 2:
+        b, a = poly
+        if b % a != 0:
+            raise ValueError('rational solution')
+        return -b // a
+    else:
+        raise NotImplementedError
 
 
 def main(args):
