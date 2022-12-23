@@ -5,9 +5,7 @@ Advent of Code 2022 -- Day 23
 >>> part1(TEST_INPUT)
 110
 >>> part2(TEST_INPUT)
-Traceback (most recent call last):
-...
-NotImplementedError
+20
 """
 
 import collections
@@ -33,7 +31,7 @@ class Point(NamedTuple):
         return Point(*(a + b for a, b in zip(self, other)))
 
 
-def part1(input):
+def parse(input):
     elves = set()
     for row, line in enumerate(input.splitlines()):
         for col, char in enumerate(line):
@@ -62,25 +60,39 @@ def part1(input):
         ]),
         (Point(0, 0), []),
     ]
-    for _ in range(10):
-        proposal = {}
-        for elf in elves:
-            proposal[elf] = elf + next(
-                direction
-                for direction, blockers in conditions
-                if all(
-                    elf + blocker not in elves
-                    for blocker in blockers
-                )
+    return elves, conditions
+
+
+def do_round(elves, conditions):
+    proposal = {}
+    for elf in elves:
+        proposal[elf] = elf + next(
+            direction
+            for direction, blockers in conditions
+            if all(
+                elf + blocker not in elves
+                for blocker in blockers
             )
-        count = collections.Counter(proposal.values())
-        next_elves = {
-            destination if count[destination] == 1 else source
-            for source, destination in proposal.items()
-        }
-        assert len(next_elves) == len(elves)
-        elves = next_elves
-        conditions[1:5] = conditions[2:5] + conditions[1:2]
+        )
+    count = collections.Counter(proposal.values())
+    next_elves = {
+        destination if count[destination] == 1 else source
+        for source, destination in proposal.items()
+    }
+    assert len(next_elves) == len(elves)
+    next_conditions = (
+        conditions[:1]
+        + conditions[2:5]
+        + conditions[1:2]
+        + conditions[5:]
+    )
+    return next_elves, next_conditions
+
+
+def part1(input):
+    elves, conditions = parse(input)
+    for _ in range(10):
+        elves, conditions = do_round(elves, conditions)
     min_row = min(r for r, c in elves)
     min_col = min(c for r, c in elves)
     max_row = max(r for r, c in elves)
@@ -89,7 +101,15 @@ def part1(input):
 
 
 def part2(input):
-    raise NotImplementedError
+    elves, conditions = parse(input)
+    n = 1
+    while True:
+        next_elves, conditions = do_round(elves, conditions)
+        if next_elves == elves:
+            break
+        elves = next_elves
+        n += 1
+    return n
 
 
 def main(args):
