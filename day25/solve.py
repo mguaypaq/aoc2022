@@ -29,32 +29,25 @@ TEST_INPUT = """\
 """
 
 
+def int_from_snafu(line):
+    n = 0
+    for char in line:
+        n = n*5 + '=-012'.index(char) - 2
+    return n
+
+
+def snafu_from_int(n):
+    chars = []
+    while n:
+        n, d = divmod(n+2, 5)
+        chars.append('=-012'[d])
+    return ''.join(reversed(chars))
+
+
 def part1(input):
-    digits = []
-    for line in input.splitlines():
-        place = 0
-        carry = 0
-        while place < len(line) or carry:
-            while place >= len(digits):
-                digits.append(0)
-            digit = digits[place]
-            if place < len(line):
-                digit += '=-012'.index(line[-1-place]) - 2
-            digit += carry
-            if digit < -2:
-                digit += 5
-                carry = -1
-            elif digit > 2:
-                digit -= 5
-                carry = 1
-            else:
-                carry = 0
-            assert -2 <= digit <= 2
-            digits[place] = digit
-            place += 1
-    while digits and digits[-1] == 0:
-        digits.pop()
-    return ''.join('012=-'[d] for d in reversed(digits))
+    return snafu_from_int(sum(
+        int_from_snafu(line) for line in input.splitlines()
+    ))
 
 
 def part2(input):
